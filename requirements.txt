@@ -1,0 +1,8 @@
+argparse
+httplib2
+lxml
+unipath
+-e git+git://github.com/jdunck/python-unicodecsv#egg=unicodecsv
+
+# needed to work with python 2.x
+python-dateutil==1.5
