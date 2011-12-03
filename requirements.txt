@@ -6,3 +6,7 @@ unipath
 
 # needed to work with python 2.x
 python-dateutil==1.5
+
+ipython
+unittest2
+configparser
