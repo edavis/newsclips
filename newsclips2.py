@@ -57,6 +57,7 @@ class Article(object):
         self.config = Config()
         self.config_values = self.config.find_config_values(self.url)
         self.has_config = "skip" not in self.config_values
+        self.medium = "Online"
 
     def get_tree(self):
         """
@@ -167,10 +168,15 @@ class Article(object):
             else:
                 return author_xpath
 
+    def get_format(self):
+        return self.config_values["format"]
+
+    def get_media(self):
+        return self.config_values["media"]
+
     date   = property(get_date)
-    medium = property(lambda self: "Online")
-    format = property(lambda self: self.config_values.get("format", ""))
-    media  = property(lambda self: self.config_values.get("media", ""))
+    format = property(get_format)
+    media  = property(get_media)
     title  = property(get_title)
     author = property(get_author)
 

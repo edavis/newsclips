@@ -39,3 +39,15 @@ class TestArticle(unittest2.TestCase):
 
         a = Article("http://www.lasvegasgleaner.com/las_vegas_gleaner/2011/12/unwitting-local-tools-of-corporate-overlords-hire-a-lawyer.html")
         self.assertEqual("Hugh Jackson", a.author)
+
+    def test_get_format(self):
+        a = Article("http://www.lvrj.com/opinion/nevada-not-a-low-tax-state-134553843.html?ref=843")
+        self.assertEqual("Op-Ed", a.format)
+
+    def test_get_media(self):
+        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
+        self.assertEqual("Las Vegas Sun", a.media)
+
+    def test_get_medium(self):
+        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
+        self.assertEqual("Online", a.medium)
