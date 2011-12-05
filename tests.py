@@ -8,7 +8,7 @@ class TestConfig(unittest2.TestCase):
         self.assertEqual(list(config.sort_sections()), ["lvrj.com/blogs", "lvrj.com"])
 
 class TestArticle(unittest2.TestCase):
-    def test_get_date_by_url(self):
+    def test_get_date(self):
         a = Article("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
         self.assertEqual(date(2011, 11, 28), a.date)
 
