@@ -151,17 +151,16 @@ class Article(object):
 
     def get_author(self):
         author = self.config_values.get("author")
-        author_index = self.config_values.get("author_index")
-        if author_index is not None:
-            author_index = int(author_index)
+        author_re = self.config_values.get("author_re")
 
         if author.startswith("//"):
             value = self.tree(author)
-            if isinstance(value, list):
-                if author_index is not None:
-                    value = value[author_index]
-                else:
-                    value = " ".join(value)
+            value = " ".join(value)
+            if author_re is not None:
+                match = re.search(author_re, value)
+                if match:
+                    value = match.group(1)
+
             return value.strip()
         else:
             return author

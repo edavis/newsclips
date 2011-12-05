@@ -24,3 +24,7 @@ class TestArticle(unittest2.TestCase):
     def test_get_title(self):
         a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
         self.assertTrue(u"Court wants nonprofit group to pay almost $1 million to review foreclosure records" in a.title)
+
+    def test_get_author(self):
+        a = Article("http://www.lvrj.com/opinion/nevada-not-a-low-tax-state-134553843.html?ref=843")
+        self.assertEqual("GEOFFREY LAWRENCE", a.author)
