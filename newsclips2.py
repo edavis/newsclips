@@ -7,7 +7,6 @@ import httplib2
 import datetime
 from unipath import Path
 from lxml.html import document_fromstring
-# from ConfigParser import ConfigParser
 from configparser import ConfigParser, ExtendedInterpolation
 from dateutil.parser import parse as date_parse
 
