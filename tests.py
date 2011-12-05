@@ -61,3 +61,10 @@ class TestArticle(unittest2.TestCase):
 
         a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - neg")
         self.assertFalse(a.positive)
+
+    def test_get_franklin_story(self):
+        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online, Franklin story")
+        self.assertTrue(a.franklin_story)
+
+        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online")
+        self.assertFalse(a.franklin_story)

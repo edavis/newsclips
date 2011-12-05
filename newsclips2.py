@@ -177,12 +177,16 @@ class Article(object):
     def get_positive(self):
         return 'neg' not in self.notes.lower()
 
+    def get_franklin_story(self):
+        return 'franklin' in self.notes.lower()
+
     date   = property(get_date)
     format = property(get_format)
     media  = property(get_media)
     title  = property(get_title)
     author = property(get_author)
     positive = property(get_positive)
+    franklin_story = property(get_franklin_story)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
