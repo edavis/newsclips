@@ -1,6 +1,11 @@
 import unittest2
 from datetime import date
-from newsclips2 import Article
+from newsclips2 import Article, Config
+
+class TestConfig(unittest2.TestCase):
+    def test_find_config_values(self):
+        config = Config("test_config.ini")
+        self.assertEqual(list(config.sort_sections()), ["lvrj.com/blogs", "lvrj.com"])
 
 class TestArticle(unittest2.TestCase):
     def test_get_date_by_url(self):

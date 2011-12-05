@@ -29,15 +29,24 @@ class Config(object):
     def __getitem__(self, domain):
         return dict(self.config.items(domain))
 
+    def sort_sections(self):
+        """
+        Yield section names in `len` descending order.
+        """
+        # longer sections should appear first because they'll be more
+        # "unique."
+        #
+        # For example: If the URL is "lvrj.com/blogs/sherm" and the config
+        # file contains both "lvrj.com/blogs/sherm" and "lvrj.com," we want
+        # it to match with "lvrj.com/blogs/sherm" instead of just "lvrj.com."
+        for section in sorted(self.config.sections(), key=len, reverse=True):
+            yield section
+
     def find_config_values(self, url):
         """
         Given a URL, return its "xpath info" for how to parse.
         """
-        # sort longest first so lvrj.com/blogs/sherm will appear
-        # before lvrj.com/blogs; this way the most unique will get
-        # matched before anything else
-        sections = sorted(self.config.sections(), key=len, reverse=True)
-        for section in sections:
+        for section in self.sort_sections():
             if section in url:
                 return self[section]
 
