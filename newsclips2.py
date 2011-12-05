@@ -20,12 +20,6 @@ class Config(object):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read([config])
 
-    def __contains__(self, domain):
-        """
-        Return True if domain is included in the config.
-        """
-        return key in self.config.sections()
-
     def __getitem__(self, domain):
         return dict(self.config.items(domain))
 
