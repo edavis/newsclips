@@ -54,3 +54,10 @@ class TestArticle(unittest2.TestCase):
     def test_get_medium(self):
         a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
         self.assertEqual("Online", a.medium)
+
+    def test_get_positive(self):
+        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
+        self.assertTrue(a.positive)
+
+        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - neg")
+        self.assertFalse(a.positive)

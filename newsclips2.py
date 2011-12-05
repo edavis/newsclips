@@ -174,11 +174,15 @@ class Article(object):
     def get_media(self):
         return self.config_values["media"]
 
+    def get_positive(self):
+        return 'neg' not in self.notes
+
     date   = property(get_date)
     format = property(get_format)
     media  = property(get_media)
     title  = property(get_title)
     author = property(get_author)
+    positive = property(get_positive)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
