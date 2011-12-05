@@ -18,9 +18,13 @@ class Config(object):
     def __init__(self, config="config.ini"):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
         self.config.read([config])
+        self.log = logging.getLogger('newsclips2.config')
 
     def __getitem__(self, domain):
-        return dict(self.config.items(domain))
+        self.log.debug("  Getting config values for '%s'" % domain)
+        values = dict(author='', medium='', media='', format='')
+        values.update(dict(self.config.items(domain)))
+        return values
 
     def sort_sections(self):
         """
