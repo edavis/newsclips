@@ -28,3 +28,11 @@ class TestArticle(unittest2.TestCase):
     def test_get_author(self):
         a = Article("http://www.lvrj.com/opinion/nevada-not-a-low-tax-state-134553843.html?ref=843")
         self.assertEqual("GEOFFREY LAWRENCE", a.author)
+
+        # lvrj.com uses a different template when the op-ed is by us
+        # vs. when the op-ed is written by a staffer
+        a = Article("http://www.lvrj.com/opinion/coming-soon-pension-apocalypse-134553883.html")
+        self.assertEqual("Glenn Cook", a.author)
+
+        a = Article("http://www.lasvegasgleaner.com/las_vegas_gleaner/2011/12/unwitting-local-tools-of-corporate-overlords-hire-a-lawyer.html")
+        self.assertEqual("Hugh Jackson", a.author)

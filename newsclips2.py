@@ -150,20 +150,22 @@ class Article(object):
         return unicode(self.tree("//title/text()")[0].strip())
 
     def get_author(self):
-        author = self.config_values.get("author")
+        author_xpaths = self.config_values.get("author").split("\n")
         author_re = self.config_values.get("author_re")
 
-        if author.startswith("//"):
-            value = self.tree(author)
-            value = " ".join(value)
-            if author_re is not None:
-                match = re.search(author_re, value)
-                if match:
-                    value = match.group(1)
+        for author_xpath in author_xpaths:
+            if author_xpath.startswith("//"):
+                value = self.tree(author_xpath)
+                if value:
+                    value = " ".join(value)
+                    if author_re is not None:
+                        match = re.search(author_re, value)
+                        if match:
+                            value = match.group(1)
 
-            return value.strip()
-        else:
-            return author
+                    return value.strip()
+            else:
+                return author_xpath
 
     date   = property(get_date)
     medium = property(lambda self: "Online")
