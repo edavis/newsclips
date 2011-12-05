@@ -1,11 +1,40 @@
 import unittest2
 from datetime import date
-from newsclips2 import Article, Config
+from newsclips2 import Article, RadioAppearance, Config
 
 class TestConfig(unittest2.TestCase):
     def test_find_config_values(self):
         config = Config("test_config.ini")
         self.assertEqual(list(config.sort_sections()), ["lvrj.com/blogs", "lvrj.com"])
+
+class TestRadioAppearance(unittest2.TestCase):
+    def test_get_duration(self):
+        r = RadioAppearance("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(r.duration, 60)
+
+        r = RadioAppearance("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(r.duration, 10)
+
+    def test_get_date(self):
+        r = RadioAppearance("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(r.date, date(2011, 11, 16))
+
+        r = RadioAppearance("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(r.date, date(2011, 11, 30))
+
+    def test_get_media(self):
+        r = RadioAppearance("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(r.media, "KDWN")
+
+        r = RadioAppearance("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(r.media, "KXNT")
+
+    def test_get_franklin_story(self):
+        r = RadioAppearance("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone, Franklin story")
+        self.assertTrue(r.franklin_story)
+
+        r = RadioAppearance("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertFalse(r.franklin_story)
 
 class TestArticle(unittest2.TestCase):
     def test_get_date(self):

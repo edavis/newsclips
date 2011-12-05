@@ -50,7 +50,16 @@ class Config(object):
             if section in url:
                 return self[section]
 
-class Article(object):
+class Mention(object):
+    def get_franklin_story(self):
+        if hasattr(self, 'notes'):
+            line = self.notes
+        elif hasattr(self, 'line'):
+            line = self.line
+        return "franklin" in line.lower()
+    franklin_story = property(get_franklin_story)
+
+class Article(Mention):
     def __init__(self, line):
         self.line = line
         self.log = logging.getLogger('newsclips2.article')
@@ -59,7 +68,9 @@ class Article(object):
         self.config = Config()
         self.config_values = self.config.find_config_values(self.url)
         self.has_config = "skip" not in self.config_values
+
         self.medium = u"Online"
+        self.duration = u""
 
     def get_tree(self):
         """
@@ -180,9 +191,6 @@ class Article(object):
     def get_positive(self):
         return 'neg' not in self.notes.lower()
 
-    def get_franklin_story(self):
-        return 'franklin' in self.notes.lower()
-
     def get_mentioned(self):
         staff = {}
         for k, v in self.config.config["staff"].items():
@@ -203,8 +211,43 @@ class Article(object):
     title  = property(get_title)
     author = property(get_author)
     positive = property(get_positive)
-    franklin_story = property(get_franklin_story)
     mentioned = property(get_mentioned)
+
+class RadioAppearance(Mention):
+    """
+    Class to hold NPRI's radio appearances.
+    """
+    def __init__(self, line):
+        self.line = line
+        self.medium = u"Radio"
+        self.format = u"Interview"
+        self.title = u""
+        self.author = u""
+        self.positive = True
+        self.mentioned = set()
+
+        self.log = logging.getLogger('newsclips2.radio')
+        self.log.info("Radio: '%s'" % self.line)
+
+    def get_duration(self):
+        match = re.search("(\d+) min", self.line)
+        if match:
+            return int(match.group(1))
+
+    def get_date(self):
+        match = re.search("(\d+)/(\d+)/(\d+)", self.line)
+        if match:
+            (month, day, year) = match.groups()
+            return datetime.date(int('20' + year), int(month), int(day))
+
+    def get_media(self):
+        match = re.search("([A-Z]{4})", self.line)
+        if match:
+            return unicode(match.group(1))
+
+    duration = property(get_duration)
+    date = property(get_date)
+    media = property(get_media)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -233,21 +276,21 @@ if __name__ == "__main__":
         line = line.strip()
         article = None
 
+        if line.startswith('#'):
+            log.debug("Skipping %r" % line)
+            continue
+
         if line.startswith(('http://', 'https://')):
-            article = Article(line)
-            if article.has_config:
-                log.info("  Date      : %r" % article.date)
-                log.info("  Medium    : %r" % article.medium)
-                log.info("  Format    : %r" % article.format)
-                log.info("  Media     : %r" % article.media)
-                log.info("  Title     : %r" % article.title)
-                log.info("  Author    : %r" % article.author)
-                log.info("  Positive  : %r" % article.positive)
-                log.info("  Franklin  : %r" % article.franklin_story)
-                log.info("  Mentioned : %r" % article.mentioned)
-            else:
-                log.info("  Section said to skip")
+            mention = Article(line)
         else:
-            log.debug("Skipping '%s'" % line)
+            mention = RadioAppearance(line)
 
-
+        log.info("  Date      : %r" % mention.date)
+        log.info("  Medium    : %r" % mention.medium)
+        log.info("  Format    : %r" % mention.format)
+        log.info("  Media     : %r" % mention.media)
+        log.info("  Title     : %r" % mention.title)
+        log.info("  Author    : %r" % mention.author)
+        log.info("  Positive  : %r" % mention.positive)
+        log.info("  Franklin  : %r" % mention.franklin_story)
+        log.info("  Mentioned : %r" % mention.mentioned)
