@@ -16,7 +16,8 @@ HTTP = httplib2.Http(CACHE)
 
 class Config(object):
     def __init__(self, config="config.ini"):
-        self.config = ConfigParser(interpolation=ExtendedInterpolation())
+        self.config = ConfigParser(interpolation=ExtendedInterpolation(),
+                                   allow_no_value=True)
         self.config.read([config])
         self.log = logging.getLogger('newsclips2.config')
 
@@ -55,6 +56,7 @@ class Article(object):
         self.tree = self.get_tree()
         self.config = Config()
         self.config_values = self.config.find_config_values(self.url)
+        self.has_config = "skip" not in self.config_values
 
     def get_tree(self):
         """
@@ -122,38 +124,27 @@ class Article(object):
             return date
 
         xpath = self.config_values.get("date")
-        if xpath is None:
-            self.log.error("No date xpath given for '%s'" % self.url)
-
-        date_index = self.config_values.get("date_index")
-        if date_index is not None:
-            date_index = int(date_index)
-
-        date_prepare_func = self.config_values.get("date_prepare_func")
-        if date_prepare_func is not None:
-            date_prepare_func = eval(date_prepare_func)
+        date_re = self.config_values.get("date_re")
 
         if xpath == "today":
             return datetime.date.today()
         else:
             value = self.tree(xpath)
-            if isinstance(value, list):
-                if len(value) == 1:
-                    value = value[0].strip()
-                elif date_index is not None:
-                    value = value[date_index].strip()
+            value = " ".join(value).strip()
+            if date_re is not None:
+                match = re.search(date_re, value)
+                if match:
+                    value = match.group(1)
                 else:
-                    value = " ".join(value).strip()
+                    self.log.warn("  Supplied date_re but it didn't match")
 
-            if date_prepare_func is not None:
-                value = date_prepare_func(value)
+            try:
+                date = date_parse(value, fuzzy=True).date()
+            except ValueError:
+                self.log.error("  Couldn't date_parse %r, setting to 1/1/1970" % value)
+                date = datetime.date(1970, 1, 1)
 
-            date = date_parse(value, fuzzy=True).date()
-
-        if date:
-            return date
-        else:
-            return None
+        return date
 
     def get_title(self):
         return unicode(self.tree("//title/text()")[0].strip())
@@ -211,13 +202,16 @@ if __name__ == "__main__":
 
         if line.startswith(('http://', 'https://')):
             article = Article(line)
+            if article.has_config:
+                log.info("  Date   : %r" % article.date)
+                log.info("  Medium : %r" % article.medium)
+                log.info("  Format : %r" % article.format)
+                log.info("  Media  : %r" % article.media)
+                log.info("  Title  : %r" % article.title)
+                log.info("  Author : %r" % article.author)
+            else:
+                log.info("  Section said to skip")
         else:
             log.debug("Skipping '%s'" % line)
 
-        if article:
-            log.info("  Date   : %r" % article.date)
-            log.info("  Medium : %r" % article.medium)
-            log.info("  Format : %r" % article.format)
-            log.info("  Media  : %r" % article.media)
-            log.info("  Title  : %r" % article.title)
-            log.info("  Author : %r" % article.author)
+
