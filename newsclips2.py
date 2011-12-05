@@ -57,7 +57,7 @@ class Article(object):
         self.config = Config()
         self.config_values = self.config.find_config_values(self.url)
         self.has_config = "skip" not in self.config_values
-        self.medium = "Online"
+        self.medium = u"Online"
 
     def get_tree(self):
         """
@@ -164,9 +164,9 @@ class Article(object):
                         if match:
                             value = match.group(1)
 
-                    return value.strip()
+                    return unicode(value.strip())
             else:
-                return author_xpath
+                return unicode(author_xpath)
 
     def get_format(self):
         return self.config_values["format"]
