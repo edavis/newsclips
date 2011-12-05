@@ -68,3 +68,10 @@ class TestArticle(unittest2.TestCase):
 
         a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online")
         self.assertFalse(a.franklin_story)
+
+    def test_get_mentioned(self):
+        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online")
+        self.assertTrue("NPRI" in a.mentioned)
+
+        a = Article("http://www.lasvegassun.com/news/2011/nov/30/conservative-group-sues-ban-public-employees-legis/")
+        self.assertEqual(set(["Andy Matthews", "NPRI", "Joe Becker"]), a.mentioned)

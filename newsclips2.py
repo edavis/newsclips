@@ -18,6 +18,8 @@ class Config(object):
     def __init__(self, config="config.ini"):
         self.config = ConfigParser(interpolation=ExtendedInterpolation(),
                                    allow_no_value=True)
+        # don't lowercase section names
+        self.config.optionxform = lambda option: option
         self.config.read([config])
         self.log = logging.getLogger('newsclips2.config')
 
@@ -71,7 +73,7 @@ class Article(object):
         self.log.info("URL: '%s'" % self.url)
         if not html_file.exists():
             self.log.debug("  Downloading")
-            response, content = HTTP.request(self.url)
+            response, self.content = HTTP.request(self.url)
             status_code = int(response['status'])
 
             if not (200 <= status_code < 400):
@@ -85,7 +87,8 @@ class Article(object):
         else:
             self.log.debug("  Using cache ('%s...')" % html_file.name[:60])
             with open(html_file) as fp:
-                return document_fromstring(fp.read()).xpath
+                self.content = fp.read()
+                return document_fromstring(self.content).xpath
 
     def get_date(self):
         date = None
@@ -180,6 +183,20 @@ class Article(object):
     def get_franklin_story(self):
         return 'franklin' in self.notes.lower()
 
+    def get_mentioned(self):
+        staff = {}
+        for k, v in self.config.config["staff"].items():
+            staff[k] = v.split(', ')
+
+        mentioned_staff = set()
+        for employee, permutations in staff.iteritems():
+            for name in permutations:
+                name = name.encode('ascii')
+                if name.lower() in self.content.lower():
+                    mentioned_staff.add(employee)
+
+        return mentioned_staff
+
     date   = property(get_date)
     format = property(get_format)
     media  = property(get_media)
@@ -187,6 +204,7 @@ class Article(object):
     author = property(get_author)
     positive = property(get_positive)
     franklin_story = property(get_franklin_story)
+    mentioned = property(get_mentioned)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -218,12 +236,15 @@ if __name__ == "__main__":
         if line.startswith(('http://', 'https://')):
             article = Article(line)
             if article.has_config:
-                log.info("  Date   : %r" % article.date)
-                log.info("  Medium : %r" % article.medium)
-                log.info("  Format : %r" % article.format)
-                log.info("  Media  : %r" % article.media)
-                log.info("  Title  : %r" % article.title)
-                log.info("  Author : %r" % article.author)
+                log.info("  Date      : %r" % article.date)
+                log.info("  Medium    : %r" % article.medium)
+                log.info("  Format    : %r" % article.format)
+                log.info("  Media     : %r" % article.media)
+                log.info("  Title     : %r" % article.title)
+                log.info("  Author    : %r" % article.author)
+                log.info("  Positive  : %r" % article.positive)
+                log.info("  Franklin  : %r" % article.franklin_story)
+                log.info("  Mentioned : %r" % article.mentioned)
             else:
                 log.info("  Section said to skip")
         else:
