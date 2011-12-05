@@ -69,7 +69,6 @@ class Article(object):
         quoted_url = urllib.quote(self.url, safe='')
         html_file = CACHE.child(quoted_url)
         self.log.info("URL: '%s'" % self.url)
-        # self.log.debug("  Cache: '%s'" % html_file.name[-60:])
         if not html_file.exists():
             self.log.debug("  Downloading")
             response, content = HTTP.request(self.url)
