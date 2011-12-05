@@ -62,7 +62,7 @@ class Article(object):
         self.log.info("URL: '%s'" % self.url)
         # self.log.debug("  Cache: '%s'" % html_file.name[-60:])
         if not html_file.exists():
-            self.log.info("  Downloading")
+            self.log.debug("  Downloading")
             response, content = HTTP.request(self.url)
             status_code = int(response['status'])
 
