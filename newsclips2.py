@@ -16,9 +16,9 @@ CACHE.mkdir(parents=True)
 HTTP = httplib2.Http(CACHE)
 
 class Config(object):
-    def __init__(self):
+    def __init__(self, config="config.ini"):
         self.config = ConfigParser(interpolation=ExtendedInterpolation())
-        self.config.read(["config.ini"])
+        self.config.read([config])
 
     def __contains__(self, domain):
         """
