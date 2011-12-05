@@ -175,7 +175,7 @@ class Article(object):
         return self.config_values["media"]
 
     def get_positive(self):
-        return 'neg' not in self.notes
+        return 'neg' not in self.notes.lower()
 
     date   = property(get_date)
     format = property(get_format)
