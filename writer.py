@@ -20,7 +20,7 @@ class Writer(object):
             mentioned = ", ".join(mention.mentioned()),
             topic     = "",
             positive  = "Yes" if mention.positive() else "No",
-            franklin  = "Yes" if mention.franklin() else "No",
+            franklin  = "Yes" if mention.franklin() else "",
             url       = str(mention))
 
         if mention.duration() is not None:
