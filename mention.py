@@ -48,4 +48,7 @@ class Mention(object):
         return
 
     def __str__(self):
-        return self.line.encode('utf-8')
+        if hasattr(self, 'url'):
+            return self.url
+        else:
+            return self.line.encode('utf-8')
