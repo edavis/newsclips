@@ -7,6 +7,7 @@ from writer import Writer
 
 if __name__ == "__main__":
     import os
+    import operator
     import logging
     from argparse import ArgumentParser
 
@@ -49,6 +50,7 @@ if __name__ == "__main__":
 
     with open(args.output, 'w') as fp:
         writer = Writer(fp)
+        mentions = sorted(mentions, key=operator.attrgetter('__class__'))
         for mention in mentions:
             writer.add(mention)
 
