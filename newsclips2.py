@@ -9,13 +9,14 @@ if __name__ == "__main__":
     import os
     import operator
     import logging
-    from argparse import ArgumentParser
+    from argparse import ArgumentParser, FileType
 
     parser = ArgumentParser()
     parser.add_argument('input', metavar='INPUT', type=open)
     parser.add_argument('-v', '--verbose', action="store_true", default=False)
     parser.add_argument('-q', '--quiet', action="store_true", default=False)
     parser.add_argument("-o", "--output", default="output.csv")
+    parser.add_argument("-r", "--rejected", default="rejected.txt", type=FileType('w'))
     args = parser.parse_args()
 
     if args.verbose:
@@ -37,11 +38,12 @@ if __name__ == "__main__":
     for line in args.input:
         line = line.strip()
 
-        if not line:
+        if not line or line.startswith('----'):
             continue
 
-        if line.startswith(('#', '----')):
+        if line.startswith('#'):
             log.debug("Skipping %r" % line)
+            args.rejected.write("%s\n" % line)
             continue
 
         if line.startswith(('http://', 'https://')):
