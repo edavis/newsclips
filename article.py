@@ -147,7 +147,8 @@ class Article(Mention):
         for employee, permutations in staff.iteritems():
             for name in permutations:
                 name = name.encode('ascii')
-                if name.lower() in self.content.lower():
+                # remove newlines
+                if name.lower() in " ".join(self.content.lower().split("\n")):
                     mentioned_staff.add(employee)
 
         return mentioned_staff
