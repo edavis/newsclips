@@ -17,7 +17,7 @@ class Writer(object):
         self.log.debug("Adding %r" % mention.line)
 
         if not mention.has_config:
-            return self.writer.writerow({"url": str(mention)})
+            return self.writer.writerow({"date": str(mention)})
 
         values = dict(
             date      = mention.date().strftime("%Y-%m-%d"),
