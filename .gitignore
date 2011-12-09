@@ -2,3 +2,5 @@
 *.pyc
 cover
 .coverage
+output.csv
+rejected.txt
