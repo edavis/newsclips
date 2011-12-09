@@ -39,9 +39,9 @@ class Article(Mention):
 
             # cache content
             with open(html_file, 'w') as fp:
-                fp.write(content)
+                fp.write(self.content)
 
-            return document_fromstring(content).xpath
+            return document_fromstring(self.content).xpath
         else:
             self.log.debug("  Using cache ('%s...')" % html_file.name[:60])
             with open(html_file) as fp:
