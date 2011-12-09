@@ -25,7 +25,7 @@ class Writer(object):
             format    = mention.format(),
             media     = mention.media(),
             title     = mention.title().encode('utf-8'),
-            author    = mention.author(),
+            author    = mention.author().encode('utf-8', 'replace'),
             mentioned = ", ".join(mention.mentioned()),
             topic     = mention.topic(),
             positive  = "Yes" if mention.positive() else "No",
