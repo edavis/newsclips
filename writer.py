@@ -14,6 +14,9 @@ class Writer(object):
     def add(self, mention):
         self.log.debug("Adding %r" % mention.line)
 
+        if not mention.has_config:
+            return self.writer.writerow({"url": str(mention)})
+
         values = dict(
             date      = mention.date().strftime("%Y-%m-%d"),
             medium    = mention.medium(),

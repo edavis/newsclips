@@ -11,6 +11,7 @@ class Radio(Mention):
         self.log = logging.getLogger('newsclips2.radio')
         self.log.info("Radio: '%s'" % line)
         super(Radio, self).__init__(line)
+        self.has_config = True
 
     def date(self):
         match = re.search("(\d+)/(\d+)/(\d+)", self.line)
