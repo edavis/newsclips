@@ -1,5 +1,7 @@
 import csv
 import logging
+from article import Article
+from radio import Radio
 
 CSV_FIELD_NAMES = "date medium format media title author mentioned "\
     "topic positive franklin duration url notes".split()
@@ -27,16 +29,19 @@ class Writer(object):
             mentioned = ", ".join(mention.mentioned()),
             topic     = mention.topic(),
             positive  = "Yes" if mention.positive() else "No",
-            franklin  = "Yes" if mention.franklin() else "",
-            url       = str(mention))
+            franklin  = "Yes" if mention.franklin() else "")
 
         if mention.duration() is not None:
             values['duration'] = '%d minutes' % mention.duration()
         else:
             values['duration'] = ''
 
-        if hasattr(mention, 'notes'):
-            values["notes"] = mention.notes
+        if isinstance(mention, Article):
+            values['url'] = mention.url
+            values['notes'] = mention.notes
+
+        elif isinstance(mention, Radio):
+            values['notes'] = str(mention)
 
         self.writer.writerow(values)
 
