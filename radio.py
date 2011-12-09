@@ -16,7 +16,13 @@ class Radio(Mention):
         match = re.search("(\d+)/(\d+)/(\d+)", self.line)
         if match:
             (month, day, year) = match.groups()
-            return datetime.date(int('20' + year), int(month), int(day))
+            if '20' in year:
+                year = int(year)
+            else:
+                year = int('20' + year)
+            return datetime.date(year, int(month), int(day))
+        else:
+            return datetime.date(1970, 1, 1)
 
     def medium(self):
         return u"Radio"

@@ -23,6 +23,9 @@ class TestRadio(unittest2.TestCase):
         r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
         self.assertEqual(r.date(), date(2011, 11, 30))
 
+        r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/2011 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(r.date(), date(2011, 11, 30))
+
     def test_get_media(self):
         r = Radio("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
         self.assertEqual(r.media(), "KDWN")
