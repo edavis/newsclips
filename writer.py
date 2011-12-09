@@ -18,7 +18,7 @@ class Writer(object):
             title     = mention.title().encode('utf-8'),
             author    = mention.author(),
             mentioned = ", ".join(mention.mentioned()),
-            topic     = "",
+            topic     = mention.topic(),
             positive  = "Yes" if mention.positive() else "No",
             franklin  = "Yes" if mention.franklin() else "",
             url       = str(mention))
