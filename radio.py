@@ -40,6 +40,3 @@ class Radio(Mention):
         match = re.search("(\d+) min", self.line)
         if match:
             return int(match.group(1))
-
-    def print_and_online(self):
-        return False

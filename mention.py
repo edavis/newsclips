@@ -47,6 +47,9 @@ class Mention(object):
     def duration(self):
         return
 
+    def duplicate(self):
+        return False
+
     def __str__(self):
         if hasattr(self, 'url'):
             return self.url

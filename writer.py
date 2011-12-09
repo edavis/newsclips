@@ -40,7 +40,7 @@ class Writer(object):
 
         self.writer.writerow(values)
 
-        if mention.print_and_online():
+        if mention.duplicate():
             values = values.copy()
             values['url'] = ''
             values['medium'] = 'Print'

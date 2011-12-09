@@ -155,11 +155,7 @@ class Article(Mention):
     def positive(self):
         return 'neg' not in self.notes.lower()
 
-    def print_and_online(self):
-        """Return True if the mention should appear twice.
+    def duplicate(self):
+        """Return True if the mention should appear twice."""
+        return 'and online' in self.notes.lower()
 
-        Once as an online mention and again as a print mention.
-
-        This is most common with newspapers.
-        """
-        return 'print' in self.notes
