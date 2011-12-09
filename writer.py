@@ -1,4 +1,5 @@
 import csv
+import logging
 
 CSV_FIELD_NAMES = "date medium format media title author mentioned "\
     "topic positive franklin duration url notes".split()
@@ -8,8 +9,11 @@ class Writer(object):
         self.output = output
         self.writer = csv.DictWriter(self.output, CSV_FIELD_NAMES,
                                      restval='EMPTY')
+        self.log = logging.getLogger('newsclips2.writer')
 
     def add(self, mention):
+        self.log.debug("Adding %r" % mention.line)
+
         values = dict(
             date      = mention.date().strftime("%Y-%m-%d"),
             medium    = mention.medium(),
