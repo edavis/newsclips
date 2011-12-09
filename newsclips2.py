@@ -37,6 +37,9 @@ if __name__ == "__main__":
     for line in args.input:
         line = line.strip()
 
+        if not line:
+            continue
+
         if line.startswith(('#', '----')):
             log.debug("Skipping %r" % line)
             continue
