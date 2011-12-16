@@ -138,6 +138,8 @@ class Article(Mention):
             else:
                 return unicode(author_xpath)
 
+        return ""
+
     def mentioned(self):
         staff = {}
         for k, v in self.config.config["staff"].items():
