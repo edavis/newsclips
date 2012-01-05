@@ -2,5 +2,6 @@
 *.pyc
 cover
 .coverage
-output.csv
+output.xls*
+~$output*
 rejected.txt
