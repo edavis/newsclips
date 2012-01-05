@@ -5,8 +5,6 @@ from core.parsers import Article, Radio
 from core.writer import Writer
 
 if __name__ == "__main__":
-    import os
-    import operator
     import logging
     from argparse import ArgumentParser, FileType
 
