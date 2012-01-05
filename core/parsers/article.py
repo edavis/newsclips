@@ -156,10 +156,13 @@ class Article(Mention):
                 if name.lower() in " ".join(self.content.lower().split("\n")):
                     mentioned_staff.add(employee)
 
-        return mentioned_staff
+        return ", ".join(mentioned_staff)
 
     def positive(self):
-        return 'neg' not in self.notes.lower()
+        if 'neg' in self.notes.lower():
+            return 'No'
+        else:
+            return 'Yes'
 
     def duplicate(self):
         """Return True if the mention should appear twice."""
