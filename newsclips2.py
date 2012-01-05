@@ -58,5 +58,3 @@ if __name__ == "__main__":
         mentions = sorted(mentions, key=operator.attrgetter('__class__'))
         for mention in mentions:
             writer.add(mention)
-
-    os.system("gnumeric '%s'&" % args.output)
