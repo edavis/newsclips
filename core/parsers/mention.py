@@ -7,12 +7,11 @@ from core.config import Config
 class Mention(object):
     def __init__(self, line):
         self.line = line
-        self.has_config = False
+        self.config = Config()
         if hasattr(self, 'url'):
-            self.config = Config()
             self.config_values = self.config.find_config_values(self.url)
-            if self.config_values is not None:
-                self.has_config = "skip" not in self.config_values
+        else:
+            self.config_values = {}
 
     def date(self):
         return ""
