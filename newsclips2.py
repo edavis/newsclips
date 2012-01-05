@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 
-from core.config import Config
 from core.parsers import Article, Radio
-from core.writer import Writer
+
+HEADERS = "date medium format media title author mentioned "\
+    "topic positive franklin duration url orig".split()
 
 if __name__ == "__main__":
+    import tablib
     import logging
+    import collections
     from argparse import ArgumentParser, FileType
 
     parser = ArgumentParser()
     parser.add_argument('input', metavar='INPUT', type=open)
     parser.add_argument('-v', '--verbose', action="store_true", default=False)
     parser.add_argument('-q', '--quiet', action="store_true", default=False)
-    parser.add_argument("-o", "--output", default="output.csv")
+    parser.add_argument("-o", "--output", default="output.xlsx")
     parser.add_argument("-r", "--rejected", default="rejected.txt", type=FileType('w'))
     args = parser.parse_args()
 
@@ -30,9 +33,10 @@ if __name__ == "__main__":
 
     log = logging.getLogger('newsclips2.main')
 
-    mentions = []
+    data = tablib.Dataset(headers=HEADERS)
 
     for line in args.input:
+        item = collections.defaultdict(str)
         line = line.strip()
 
         if not line or line.startswith('----'):
@@ -45,13 +49,41 @@ if __name__ == "__main__":
 
         if line.startswith(('http://', 'https://')):
             mention = Article(line)
+            item["url"] = mention.url
         else:
             mention = Radio(line)
 
-        mentions.append(mention)
+        item["orig"] = line
+        for key in HEADERS:
+            try:
+                func = getattr(mention, key)
+                if func:
+                    item[key] = func() if callable(func) else func
+            except AttributeError:
+                pass
 
-    with open(args.output, 'w') as fp:
-        writer = Writer(fp)
-        mentions = sorted(mentions, key=operator.attrgetter('__class__'))
-        for mention in mentions:
-            writer.add(mention)
+        # clean-up as needed
+        if item["franklin"]:
+            item["franklin"] = 'Yes'
+        else:
+            item["franklin"] = ''
+
+        if item["duration"]:
+            item["duration"] = "%d minutes" % (item["duration"])
+        else:
+            item["duration"] = ''
+
+        data.append([item[key] for key in HEADERS])
+
+        if mention.duplicate():
+            _item = item.copy()
+            _item['orig'] = ''
+            _item['url'] = ''
+            if 'print' in mention.notes.lower():
+                _item['medium'] = 'Print'
+            elif 'tv' in mention.notes.lower():
+                _item['medium'] = 'TV'
+            data.append([_item[key] for key in HEADERS])
+
+    with open(args.output, 'wb') as fp:
+        fp.write(data.xlsx)
