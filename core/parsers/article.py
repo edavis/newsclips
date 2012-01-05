@@ -85,6 +85,9 @@ class Article(Mention):
         if date:
             return date
 
+        if not self.config_values:
+            return ''
+
         xpath = self.config_values.get("date")
         date_re = self.config_values.get("date_re")
 
@@ -103,8 +106,8 @@ class Article(Mention):
             try:
                 date = date_parse(value, fuzzy=True).date()
             except ValueError:
-                self.log.error("  Couldn't date_parse %r, setting to 1/1/1970" % value)
-                date = datetime.date(1970, 1, 1)
+                self.log.error("  Couldn't date_parse %r, setting empty date" % value)
+                date = ""
 
         return date
 
@@ -112,10 +115,10 @@ class Article(Mention):
         return u"Online"
 
     def format(self):
-        return self.config_values["format"]
+        return self.config_values.get("format", "")
 
     def media(self):
-        return self.config_values["media"]
+        return self.config_values.get("media", "")
 
     def title(self):
         return unicode(self.tree("//title/text()")[0].strip())

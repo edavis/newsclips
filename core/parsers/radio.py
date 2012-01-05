@@ -23,7 +23,7 @@ class Radio(Mention):
                 year = int('20' + year)
             return datetime.date(year, int(month), int(day))
         else:
-            return datetime.date(1970, 1, 1)
+            return ""
 
     def medium(self):
         return u"Radio"

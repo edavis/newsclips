@@ -15,7 +15,7 @@ class Mention(object):
                 self.has_config = "skip" not in self.config_values
 
     def date(self):
-        return datetime.date(1970, 1, 1)
+        return ""
 
     def medium(self):
         return ""
