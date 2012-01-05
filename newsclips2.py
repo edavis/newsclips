@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
         if line.startswith('#'):
             log.debug("Skipping %r" % line)
-            args.rejected.write("%s\n" % line)
+            args.rejected.write("%s\n" % line[1:])
             continue
 
         if line.startswith(('http://', 'https://')):
