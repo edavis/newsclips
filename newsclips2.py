@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-from config import Config
-from article import Article
-from radio import Radio
-from writer import Writer
+from core.config import Config
+from core.parsers import Article, Radio
+from core.writer import Writer
 
 if __name__ == "__main__":
     import os

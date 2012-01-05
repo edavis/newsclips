@@ -1,7 +1,7 @@
 import re
 import logging
 import datetime
-from mention import Mention
+from .mention import Mention
 
 class Radio(Mention):
     """

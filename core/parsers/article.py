@@ -6,7 +6,7 @@ import datetime
 from unipath import Path
 from lxml.html import document_fromstring
 from dateutil.parser import parse as date_parse
-from mention import Mention
+from .mention import Mention
 
 CACHE = Path("~/newsclips2/").expand()
 CACHE.mkdir(parents=True)

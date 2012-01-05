@@ -1,11 +1,13 @@
 import unittest2
 from datetime import date
-from newsclips2 import Article, Radio, Config, Writer
+from core.parsers import Article, Radio
+from core.writer import Writer
+from core.config import Config
 from cStringIO import StringIO
 
 class TestConfig(unittest2.TestCase):
     def test_find_config_values(self):
-        config = Config("test_config.ini")
+        config = Config("tests/test_config.ini")
         self.assertEqual(list(config.sort_sections()), ["lvrj.com/blogs", "lvrj.com"])
 
 class TestRadio(unittest2.TestCase):

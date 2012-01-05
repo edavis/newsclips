@@ -1,7 +1,6 @@
 import csv
 import logging
-from article import Article
-from radio import Radio
+from core.parsers import Article, Radio
 
 CSV_FIELD_NAMES = "date medium format media title author mentioned "\
     "topic positive franklin duration url notes".split()

@@ -2,7 +2,7 @@ import httplib2
 import datetime
 from unipath import Path
 
-from config import Config
+from core.config import Config
 
 class Mention(object):
     def __init__(self, line):
