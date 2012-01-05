@@ -11,7 +11,6 @@ class Radio(Mention):
         self.log = logging.getLogger('newsclips2.radio')
         self.log.info("Radio: '%s'" % line)
         super(Radio, self).__init__(line)
-        self.has_config = True
 
     def date(self):
         match = re.search("(\d+)/(\d+)/(\d+)", self.line)
@@ -24,6 +23,27 @@ class Radio(Mention):
             return datetime.date(year, int(month), int(day))
         else:
             return ""
+
+    def author(self):
+        if 'alan' in self.line.lower():
+            return 'Alan Stock'
+        return ''
+
+    def title(self):
+        if 'alan' in self.line.lower():
+            return 'The Alan Stock Show'
+
+    def mentioned(self):
+        m = set()
+        if 'andy' in self.line.lower():
+            m.add('Andy Matthews')
+        elif 'steve' or 'steven' in self.line.lower():
+            m.add('Steven Miller')
+        elif 'geoff' in self.line.lower():
+            m.add('Geoff Lawrence')
+        elif 'victor' in self.line.lower():
+            m.add('Victor Joecks')
+        return ", ".join(m)
 
     def medium(self):
         return u"Radio"
