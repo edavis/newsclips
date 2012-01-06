@@ -96,6 +96,7 @@ if __name__ == "__main__":
                 _item['medium'] = 'TV'
             elif 'radio' in mention.notes.lower():
                 _item['medium'] = 'Radio'
+                _item['format'] = 'Interview'
             data.append([_item[key] for key in HEADERS])
 
     with open(args.output, 'wb') as fp:
