@@ -83,7 +83,7 @@ class Article(Mention):
 
         # short-circuit if date was in the URL
         if date:
-            return date
+            return date.strftime("%m/%d/%Y")
 
         if not self.config_values:
             return ''
@@ -109,7 +109,10 @@ class Article(Mention):
                 self.log.error("  Couldn't date_parse %r, setting empty date" % value)
                 date = ""
 
-        return date
+        if date:
+            return date.strftime("%m/%d/%Y")
+        else:
+            return ""
 
     def medium(self):
         return u"Online"
