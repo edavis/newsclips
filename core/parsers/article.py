@@ -166,5 +166,5 @@ class Article(Mention):
 
     def duplicate(self):
         """Return True if the mention should appear twice."""
-        return 'and online' in self.notes.lower()
-
+        notes = self.notes.lower()
+        return ('and online' in notes) or ('online and' in notes)
