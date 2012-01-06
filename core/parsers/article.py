@@ -162,10 +162,7 @@ class Article(Mention):
         return ", ".join(mentioned_staff)
 
     def positive(self):
-        if 'neg' in self.notes.lower():
-            return 'No'
-        else:
-            return 'Yes'
+        return 'No' if 'neg' in self.notes.lower() else 'Yes'
 
     def duplicate(self):
         """Return True if the mention should appear twice."""
