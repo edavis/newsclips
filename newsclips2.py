@@ -48,8 +48,19 @@ if __name__ == "__main__":
             continue
 
         if line.startswith(('http://', 'https://')):
-            mention = Article(line)
-            item["url"] = mention.url
+            # Penny Press NV publishes PDFs, so just create a dummy
+            # object
+            if 'pennypressnv.com' in line:
+                class DummyMention(object):
+                    def duplicate(self):
+                        return False
+                mention = DummyMention()
+                mention.positive = 'Yes'
+                mention.medium = 'Online'
+                mention.format = 'Op-Ed'
+                mention.media = 'Penny Press NV'
+            else:
+                mention = Article(line)
         else:
             mention = Radio(line)
 
