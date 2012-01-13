@@ -92,7 +92,7 @@ class Article(Mention):
         date_re = self.config_values.get("date_re")
 
         if xpath == "today":
-            return datetime.date.today()
+            return datetime.date.today().strftime("%m/%d/%Y")
         else:
             value = self.tree(xpath)
             value = " ".join(value).strip()

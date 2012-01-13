@@ -20,7 +20,7 @@ class Radio(Mention):
                 year = int(year)
             else:
                 year = int('20' + year)
-            return datetime.date(year, int(month), int(day))
+            return datetime.date(year, int(month), int(day)).strftime("%m/%d/%Y")
         else:
             return ""
 
