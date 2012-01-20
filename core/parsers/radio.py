@@ -37,7 +37,7 @@ class Radio(Mention):
         m = set()
         if 'andy' in self.line.lower():
             m.add('Andy Matthews')
-        elif 'steve' or 'steven' in self.line.lower():
+        elif re.search('steven?$', self.line.lower()):
             m.add('Steven Miller')
         elif 'geoff' in self.line.lower():
             m.add('Geoff Lawrence')
