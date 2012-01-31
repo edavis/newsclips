@@ -59,6 +59,7 @@ if __name__ == "__main__":
                 mention.medium = 'Online'
                 mention.format = 'Op-Ed'
                 mention.media = 'Penny Press NV'
+                mention.url = re.search('(?P<url>[^ ]+)', line).group('url')
             else:
                 mention = Article(line)
         else:
