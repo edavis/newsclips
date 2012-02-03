@@ -34,6 +34,7 @@ if __name__ == "__main__":
     log = logging.getLogger('newsclips2.main')
 
     data = tablib.Dataset(headers=HEADERS)
+    in_the_news = tablib.Dataset(headers=("date", "media", "title", "url"))
 
     for line in args.input:
         item = collections.defaultdict(str)
@@ -87,6 +88,10 @@ if __name__ == "__main__":
 
         data.append([item[key] for key in HEADERS])
 
+        if 'in the news' in line.lower():
+            in_the_news.append([
+                    item["date"], item["media"], item["title"], item["url"]])
+
         if mention.duplicate():
             _item = item.copy()
             _item['orig'] = ''
@@ -102,3 +107,6 @@ if __name__ == "__main__":
 
     with open(args.output, 'wb') as fp:
         fp.write(data.xls)
+
+    with open("in-the-news.csv", "w") as fp:
+        fp.write(in_the_news.csv)
