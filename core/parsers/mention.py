@@ -1,56 +1,80 @@
+import re
 import httplib2
-import datetime
 from unipath import Path
+from datetime import date
+from collections import defaultdict
 
-from core.config import Config
+from ..config import Config
+from article import Article
+from radio import Radio
+from core import HEADERS
 
 class Mention(object):
     def __init__(self, line):
+        self.info = defaultdict(str)
         self.line = line
-        self.config = Config()
-        if hasattr(self, 'url'):
-            self.config_values = self.config.find_config_values(self.url)
+
+        self.in_the_news = False
+        self.duplicate = False
+
+        if re.search('^https?://', line):
+            obj = Article(line)
         else:
-            self.config_values = {}
+            obj = Radio(line)
 
-    def date(self):
-        return ""
+        config = Config()
+        obj.config_values = config[line]
 
-    def medium(self):
-        return ""
-
-    def format(self):
-        return ""
-
-    def media(self):
-        return ""
-
-    def title(self):
-        return ""
-
-    def author(self):
-        return ""
-
-    def mentioned(self):
-        return ""
-
-    def topic(self):
-        return ""
-
-    def positive(self):
-        return "Yes"
-
-    def franklin(self):
-        return "franklin" in self.line.lower()
-
-    def duration(self):
-        return
-
-    def duplicate(self):
-        return False
-
-    def __str__(self):
-        if hasattr(self, 'url'):
-            return self.url
+        # we format here instead of in Article/Radio in case
+        # we ever want/need to change the format
+        if obj.date():
+            self.info["date"] = obj.date().strftime("%m/%d/%Y")
         else:
-            return self.line.encode('utf-8')
+            self.info["date"] = ""
+
+        self.info["medium"]    = obj.medium()
+        self.info["format"]    = obj.format()
+        self.info["media"]     = obj.media()
+        self.info["title"]     = obj.title()
+        self.info["author"]    = obj.author()
+        self.info["mentioned"] = obj.mentioned()
+        self.info["topic"]     = ""
+        self.info["positive"]  = obj.positive()
+        self.info["franklin"]  = obj.franklin()
+        self.info["duration"]  = obj.duration()
+
+        if isinstance(obj, Article):
+            self.info["url"] = obj.url
+            self.in_the_news = 'in the news' in line.lower()
+            self.duplicate = 'and online' in line.lower() #should this be for both Radio and Article?
+        else:
+            self.info["url"] = ""
+
+        self.info["orig"] = line
+
+    def append(self, data):
+        """
+        Given a `tablib.Dataset`, append this mention to it.
+
+        Automatically handle print/online duplicates.
+        """
+        tags = ['in-the-news'] if self.in_the_news else []
+        info = {key: self.info[key] for key in HEADERS}
+        data.append([info[key] for key in HEADERS], tags=tags)
+
+        if self.duplicate:
+            info = info.copy()
+            info["orig"] = ""
+            info["url"] = ""
+
+            if "print" in self.line.lower():
+                info["medium"] = "Print"
+
+            elif "tv" in self.line.lower():
+                info["medium"] = "TV"
+
+            elif 'radio' in self.line.lower():
+                info["medium"] = "Radio"
+                info["format"] = "Interview"
+
+            data.append([info[key] for key in HEADERS])

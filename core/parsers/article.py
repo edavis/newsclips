@@ -6,18 +6,20 @@ import datetime
 from unipath import Path
 from lxml.html import document_fromstring
 from dateutil.parser import parse as date_parse
-from .mention import Mention
+
+from ..config import Config
 
 CACHE = Path("~/newsclips2/").expand()
 CACHE.mkdir(parents=True)
 HTTP = httplib2.Http(CACHE)
 
-class Article(Mention):
+class Article(object):
     def __init__(self, line):
-        self.log = logging.getLogger('newsclips2.article')
+        self.log = logging.getLogger('newsclips.article')
         self.url, self.notes = re.search(r'^(https?://[^ ]+) ?(.*)$', line).groups()
         self.tree = self.get_tree()
-        super(Article, self).__init__(line)
+
+        self.config = Config()
 
     def get_tree(self):
         """
@@ -28,7 +30,7 @@ class Article(Mention):
         """
         quoted_url = urllib.quote(self.url, safe='')
         html_file = CACHE.child(quoted_url)
-        self.log.info("URL: '%s'" % self.url)
+        self.log.info(self.url)
         if not html_file.exists():
             self.log.debug("  Downloading")
             response, self.content = HTTP.request(self.url)
@@ -80,10 +82,11 @@ class Article(Mention):
 
                 if all([year, month, day]):
                     date = datetime.date(year, month, day)
+                    break
 
         # short-circuit if date was in the URL
         if date:
-            return date.strftime("%m/%d/%Y")
+            return date
 
         if not self.config_values:
             return ''
@@ -92,7 +95,9 @@ class Article(Mention):
         date_re = self.config_values.get("date_re")
 
         if xpath == "today":
-            return datetime.date.today().strftime("%m/%d/%Y")
+            return datetime.date.today()
+        elif xpath == "blank":
+            return
         else:
             value = self.tree(xpath)
             value = " ".join(value).strip()
@@ -107,15 +112,12 @@ class Article(Mention):
                 date = date_parse(value, fuzzy=True).date()
             except ValueError:
                 self.log.error("  Couldn't date_parse %r, setting empty date" % value)
-                date = ""
+                date = None
 
-        if date:
-            return date.strftime("%m/%d/%Y")
-        else:
-            return ""
+        return date
 
     def medium(self):
-        return u"Online"
+        return "Online"
 
     def format(self):
         return self.config_values.get("format", "")
@@ -124,13 +126,17 @@ class Article(Mention):
         return self.config_values.get("media", "")
 
     def title(self):
-        return unicode(self.tree("//title/text()")[0].strip())
+        title = self.tree("//title/text()")[0].strip()
+        return unicode(title.replace("\n", " "))
 
     def author(self):
-        author_xpaths = self.config_values.get("author").split("\n")
+        author_xpaths = self.config_values.get("author")
+        if not author_xpaths:
+            return ""
+
         author_re = self.config_values.get("author_re")
 
-        for author_xpath in author_xpaths:
+        for author_xpath in author_xpaths.split("\n"):
             if author_xpath.startswith("//"):
                 value = self.tree(author_xpath)
                 if value:
@@ -147,10 +153,7 @@ class Article(Mention):
         return ""
 
     def mentioned(self):
-        staff = {}
-        for k, v in self.config.config["staff"].items():
-            staff[k] = v.split(', ')
-
+        staff = self.config.staff()
         mentioned_staff = set()
         for employee, permutations in staff.iteritems():
             for name in permutations:
@@ -162,9 +165,16 @@ class Article(Mention):
         return ", ".join(mentioned_staff)
 
     def positive(self):
-        return 'No' if 'neg' in self.notes.lower() else 'Yes'
+        if 'neg' in self.notes.lower():
+            return 'No'
+        else:
+            return 'Yes'
 
-    def duplicate(self):
-        """Return True if the mention should appear twice."""
-        notes = self.notes.lower()
-        return ('and online' in notes) or ('online and' in notes)
+    def franklin(self):
+        if 'franklin' in self.notes.lower():
+            return 'Yes'
+        else:
+            return ''
+
+    def duration(self):
+        return ''

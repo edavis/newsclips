@@ -9,7 +9,4 @@ parser.add_argument("url")
 args = parser.parse_args()
 
 article = Article(args.url)
-namespace = dict(
-    article=article,
-    tree=article.tree)
-code.interact(local=namespace)
+code.interact(local=dict(article=article, tree=article.tree))

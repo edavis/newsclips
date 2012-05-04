@@ -8,17 +8,27 @@ class Config(object):
         # don't lowercase section names
         self.config.optionxform = lambda option: option
         self.config.read([config])
-        self.log = logging.getLogger('newsclips2.config')
+        self.log = logging.getLogger('newsclips.config')
 
-    def __getitem__(self, domain):
-        self.log.debug("  Getting config values for '%s'" % domain)
-        values = dict(author='', medium='', media='', format='')
-        values.update(dict(self.config.items(domain)))
-        return values
+    def staff(self):
+        """
+        TODO: Document this
+        """
+        staff = {}
+        for k, v in self.config.items("staff"):
+            staff[k] = v.split(', ')
+        return staff
+
+    def __getitem__(self, line):
+        for section in self.sort_sections():
+            if section in line:
+                return dict(self.config.items(section))
+
+        return {}
 
     def sort_sections(self):
         """
-        Yield section names in `len` descending order.
+        Yield section names in length descending order.
         """
         # longer sections should appear first because they'll be more
         # "unique."
@@ -28,11 +38,3 @@ class Config(object):
         # it to match with "lvrj.com/blogs/sherm" instead of just "lvrj.com."
         for section in sorted(self.config.sections(), key=len, reverse=True):
             yield section
-
-    def find_config_values(self, url):
-        """
-        Given a URL, return its "xpath info" for how to parse.
-        """
-        for section in self.sort_sections():
-            if section in url:
-                return self[section]

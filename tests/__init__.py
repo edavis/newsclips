@@ -1,139 +1,161 @@
 import unittest2
 from datetime import date
-from core.parsers import Article, Radio
-from core.writer import Writer
+from core.parsers.mention import Mention
 from core.config import Config
-from cStringIO import StringIO
+from core import HEADERS
 
 class TestConfig(unittest2.TestCase):
-    def test_find_config_values(self):
-        config = Config("tests/test_config.ini")
-        self.assertEqual(list(config.sort_sections()), ["lvrj.com/blogs", "lvrj.com"])
+    def setUp(self):
+        self.config = Config("tests/test_config.ini")
 
-class TestRadio(unittest2.TestCase):
-    def test_get_duration(self):
-        r = Radio("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
-        self.assertEqual(r.duration(), 60)
+    def test_sort_sections(self):
+        self.assertEqual(list(self.config.sort_sections()), ["lvrj.com/blogs", "lvrj.com"])
 
-        r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
-        self.assertEqual(r.duration(), 10)
+    def test_domain_lookup(self):
+        config = self.config["lvrj.com"]
+        self.assertEqual(config, {"date": "today"})
 
-    def test_get_date(self):
-        r = Radio("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
-        self.assertEqual(r.date(), date(2011, 11, 16))
+        config = self.config["not here"]
+        self.assertEqual(config, {})
 
-        r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
-        self.assertEqual(r.date(), date(2011, 11, 30))
+class TestMention(unittest2.TestCase):
+    def test_dates(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["date"], "11/28/2011")
 
-        r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/2011 on SOP lawsuit, interviewed by Samantha Stone")
-        self.assertEqual(r.date(), date(2011, 11, 30))
+        mention = Mention("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(mention.info["date"], "11/16/2011")
 
-    def test_get_media(self):
-        r = Radio("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
-        self.assertEqual(r.media(), "KDWN")
+        # no date
+        mention = Mention("Andy on Alan Stock, 720 KDWN, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(mention.info["date"], "")
 
-        r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
-        self.assertEqual(r.media(), "KXNT")
+        # test 'today' dates
+        mention = Mention("http://slashpolitics.reviewjournal.com/2012/03/depends-on-meaning-of-committed/")
+        self.assertEqual(mention.info["date"], date.today().strftime("%m/%d/%Y"))
 
-    def test_get_franklin_story(self):
-        r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone, Franklin story")
-        self.assertTrue(r.franklin())
+        # various date formats
+        mention = Mention("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
+        self.assertEqual(mention.info["date"], "11/19/2011")
 
-        r = Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
-        self.assertFalse(r.franklin())
+        mention = Mention("http://www.rgj.com/article/20111130/NEWS19/111130028/Group-files-suit-challenging-ability-public-employees-serve-legislature")
+        self.assertEqual(mention.info["date"], "11/30/2011")
 
-class TestArticle(unittest2.TestCase):
-    def test_get_date(self):
-        a = Article("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
-        self.assertEqual(date(2011, 11, 28), a.date())
+        # date in html
+        mention = Mention("http://www.lvrj.com/news/lawsuit-by-nevada-think-tank-targets-public-employees-serving-in-legislature-134770478.html")
+        self.assertEqual(mention.info["date"], "11/30/2011")
 
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
-        self.assertEqual(date(2011, 11, 19), a.date())
+        mention = Mention("http://nevadabusiness.com/issue/0112/38/2510")
+        self.assertEqual(mention.info["date"], "")
 
-        a = Article("http://www.rgj.com/article/20111130/NEWS19/111130028/Group-files-suit-challenging-ability-public-employees-serve-legislature")
-        self.assertEqual(date(2011, 11, 30), a.date())
+        mention = Mention("Andy, 10 min. interview with 840 AM KXNT, 11/30/2011 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(mention.info["date"], "11/30/2011")
 
-        a = Article("http://www.lvrj.com/news/lawsuit-by-nevada-think-tank-targets-public-employees-serving-in-legislature-134770478.html")
-        self.assertEqual(date(2011, 11, 30), a.date())
+    def test_medium(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["medium"], "Online")
 
-        a = Article("http://nevadabusinesscoalition.com/?p=1682")
-        self.assertEqual(date.today(), a.date())
+        mention = Mention("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(mention.info["medium"], "Radio")
 
-    def test_get_title(self):
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
-        self.assertTrue(u"Court wants nonprofit group to pay almost $1 million to review foreclosure records" in a.title())
+    def test_format(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["format"], "Article")
 
-    def test_get_author(self):
-        a = Article("http://www.lvrj.com/opinion/nevada-not-a-low-tax-state-134553843.html?ref=843")
-        self.assertEqual("GEOFFREY LAWRENCE", a.author())
+        mention = Mention("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(mention.info["format"], "Interview")
+
+        mention = Mention("http://www.lvrj.com/opinion/nevada-not-a-low-tax-state-134553843.html?ref=843")
+        self.assertEqual("Op-Ed", mention.info["format"])
+
+    def test_media(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["media"], "Las Vegas Business Press")
+
+        mention = Mention("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(mention.info["media"], "KDWN")
+
+        mention = Mention("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(mention.info["media"], "KXNT")
+
+        mention = Mention("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
+        self.assertEqual("Las Vegas Sun", mention.info["media"])
+
+    def test_title(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["title"], "Las Vegas Business Press :: News : State employee pension plan funding ratio dips")
+
+        mention = Mention("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
+        self.assertTrue("Court wants nonprofit group to pay almost $1 million to review foreclosure records" in mention.info["title"])
+
+    def test_author(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["author"], "BY CHRIS SIEROTY")
+
+        mention = Mention("http://www.lvrj.com/opinion/nevada-not-a-low-tax-state-134553843.html?ref=843")
+        self.assertEqual("GEOFFREY LAWRENCE", mention.info["author"])
 
         # lvrj.com uses a different template when the op-ed is by us
         # vs. when the op-ed is written by a staffer
-        a = Article("http://www.lvrj.com/opinion/coming-soon-pension-apocalypse-134553883.html")
-        self.assertEqual("Glenn Cook", a.author())
+        mention = Mention("http://www.lvrj.com/opinion/coming-soon-pension-apocalypse-134553883.html")
+        self.assertEqual("Glenn Cook", mention.info["author"])
 
-        a = Article("http://www.lasvegasgleaner.com/las_vegas_gleaner/2011/12/unwitting-local-tools-of-corporate-overlords-hire-a-lawyer.html")
-        self.assertEqual("Hugh Jackson", a.author())
+        mention = Mention("http://www.lasvegasgleaner.com/las_vegas_gleaner/2011/12/unwitting-local-tools-of-corporate-overlords-hire-a-lawyer.html")
+        self.assertEqual("Hugh Jackson", mention.info["author"])
 
-        a = Article("http://nevadabusinesscoalition.com/?p=1682")
-        self.assertEqual("Mike Chamberlain", a.author())
+    def test_mentioned(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["mentioned"], "NPRI")
 
-    def test_get_format(self):
-        a = Article("http://www.lvrj.com/opinion/nevada-not-a-low-tax-state-134553843.html?ref=843")
-        self.assertEqual("Op-Ed", a.format())
+        mention = Mention("http://www.lasvegassun.com/news/2011/nov/30/conservative-group-sues-ban-public-employees-legis/")
+        self.assertEqual("Andy Matthews, Joe Becker, NPRI", mention.info["mentioned"])
 
-    def test_get_media(self):
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
-        self.assertEqual("Las Vegas Sun", a.media())
+    def test_topic(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["topic"], "")
 
-    def test_get_medium(self):
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
-        self.assertEqual("Online", a.medium())
+    def test_positive(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["positive"], "Yes")
 
-    def test_get_positive(self):
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/")
-        self.assertTrue(a.positive())
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt - neg")
+        self.assertEqual(mention.info["positive"], "No")
 
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - neg")
-        self.assertFalse(a.positive())
+    def test_franklin(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt - franklin")
+        self.assertEqual(mention.info["franklin"], "Yes")
 
-    def test_get_franklin_story(self):
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online, Franklin story")
-        self.assertTrue(a.franklin())
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        self.assertEqual(mention.info["franklin"], "")
 
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online")
-        self.assertFalse(a.franklin())
+    def test_duration(self):
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt - franklin")
+        self.assertEqual(mention.info["duration"], "")
 
-    def test_get_mentioned(self):
-        a = Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online")
-        self.assertTrue("NPRI" in a.mentioned())
+        mention = Mention("Andy on Alan Stock, 720 KDWN, 11/16/11, 60 minutes, Judicial conflict of interests, Foreclosure Mediation Program and Obamacare, Franklin story")
+        self.assertEqual(mention.info["duration"], "60 minutes")
 
-        a = Article("http://www.lasvegassun.com/news/2011/nov/30/conservative-group-sues-ban-public-employees-legis/")
-        self.assertEqual(set(["Andy Matthews", "NPRI", "Joe Becker"]), a.mentioned())
+        mention = Mention("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(mention.info["duration"], "10 minutes")
 
-class TestWriter(unittest2.TestCase):
-    def setUp(self):
-        self.output = StringIO()
-        self.writer = Writer(self.output)
+        mention = Mention("Andy, interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone")
+        self.assertEqual(mention.info["duration"], "")
 
-    def test_article(self):
-        self.writer.add(Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online"))
-        self.output.seek(0)
-        data = self.output.read()
-        self.assertTrue(data)
-        self.assertTrue("2011-11-19" in data)
+    def test_in_the_news(self):
+        from tablib import Dataset, Databook
+        data = Dataset()
 
-    def test_empty(self):
-        pass
+        mention = Mention("http://www.lvbusinesspress.com/articles/2011/11/28/news/iq_49033368.txt")
+        mention.append(data)
 
-    def test_radio(self):
-        self.writer.add(Radio("Andy, 10 min. interview with 840 AM KXNT, 11/30/11 on SOP lawsuit, interviewed by Samantha Stone"))
-        self.output.seek(0)
-        data = self.output.read()
-        self.assertTrue("10 minutes" in data)
+        mention = Mention("http://www.lasvegasgleaner.com/las_vegas_gleaner/2011/12/unwitting-local-tools-of-corporate-overlords-hire-a-lawyer.html - NPRI in the News")
+        mention.append(data)
 
-    def test_print_and_online(self):
-        self.writer.add(Article("http://www.lasvegassun.com/news/2011/nov/19/court-wants-nonprofit-group-pay-almost-1-million-r/ - print and online"))
-        self.output.seek(0)
-        data = self.output.read()
-        self.assertEqual(data.count("2011-11-19"), 2)
+        self.assertEqual(len(data), 2)
+        self.assertEqual(len(data.filter(['in-the-news'])), 1)
+
+    def test_dupe_entries(self):
+        """
+        Some stories need to be record twice: once the online version
+        and again for the print version.
+        """

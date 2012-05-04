@@ -7,4 +7,5 @@ ipython
 configparser
 unittest2
 nose
--e git+git://github.com/jdunck/python-unicodecsv#egg=unicodecsv
+coverage
+

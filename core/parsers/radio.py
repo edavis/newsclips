@@ -1,16 +1,15 @@
 import re
 import logging
 import datetime
-from .mention import Mention
 
-class Radio(Mention):
+class Radio(object):
     """
     Class to hold NPRI's radio appearances.
     """
     def __init__(self, line):
-        self.log = logging.getLogger('newsclips2.radio')
-        self.log.info("Radio: '%s'" % line)
-        super(Radio, self).__init__(line)
+        self.line = line
+        self.log = logging.getLogger('newsclips.radio')
+        self.log.info(line)
 
     def date(self):
         match = re.search("(\d+)/(\d+)/(\d+)", self.line)
@@ -20,9 +19,9 @@ class Radio(Mention):
                 year = int(year)
             else:
                 year = int('20' + year)
-            return datetime.date(year, int(month), int(day)).strftime("%m/%d/%Y")
+            return datetime.date(year, int(month), int(day))
         else:
-            return ""
+            return
 
     def author(self):
         if 'alan' in self.line.lower():
@@ -37,7 +36,7 @@ class Radio(Mention):
         m = set()
         if 'andy' in self.line.lower():
             m.add('Andy Matthews')
-        elif re.search('steven?$', self.line.lower()):
+        elif 'steve' in self.line.lower():
             m.add('Steven Miller')
         elif 'geoff' in self.line.lower():
             m.add('Geoff Lawrence')
@@ -46,10 +45,10 @@ class Radio(Mention):
         return ", ".join(m)
 
     def medium(self):
-        return u"Radio"
+        return "Radio"
 
     def format(self):
-        return u"Interview"
+        return "Interview"
 
     def media(self):
         match = re.search("([A-Z]{4})", self.line)
@@ -59,4 +58,16 @@ class Radio(Mention):
     def duration(self):
         match = re.search("(\d+) min", self.line)
         if match:
-            return int(match.group(1))
+            minutes = int(match.group(1))
+            return "%d minutes" % minutes
+        else:
+            return ""
+
+    def positive(self):
+        return 'Yes'
+
+    def franklin(self):
+        if 'franklin' in self.line.lower():
+            return 'Yes'
+        else:
+            return ''
