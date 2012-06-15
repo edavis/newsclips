@@ -126,7 +126,10 @@ class Article(object):
         return self.config_values.get("media", "")
 
     def title(self):
-        title = self.tree("//title/text()")[0].strip()
+        try:
+            title = self.tree("//title/text()")[0].strip()
+        except IndexError:
+            title = "[no title]"
         return unicode(title.replace("\n", " "))
 
     def author(self):
