@@ -1,40 +1,39 @@
 #!/usr/bin/env python
 
-import time
-import tablib
+import re
+import datetime
 import argparse
-from datetime import date
+
+today = datetime.date.today().strftime("%Y%m%d")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('input')
-parser.add_argument('-o', '--output', default="output.txt")
+parser.add_argument('-o', '--output', default="%s-in-the-news.txt" % today)
 args = parser.parse_args()
 
-media_hits = tablib.Dataset()
+tmpl = '<li><a href="%(url)s">(no title)</a><br/><i>%(media)s</i>, (no date)</li>\n'
+
+media = {
+    'rgj.com': 'Reno Gazette-Journal',
+    'lvrj.com': 'Las Vegas Review-Journal',
+    'lasvegassun.com': 'Las Vegas Sun',
+}
+
+output = open(args.output, 'w')
+
 with open(args.input) as fp:
-    media_hits.csv = fp.read()
+    for line in fp:
+        line = line.strip()
 
-hits = []
-last_url = None
-for row in media_hits:
-    medium = row[1]
-    hit_format = row[2]
-    if row[11]:
-        last_url = row[11]
+        if 'in the news' in line.lower():
+            url = re.search(r'^([^ ]+)', line).group(1)
+            context = {'url': url, 'media': '(no media)'}
 
-    if medium == 'Print' and hit_format == 'Article':
-        title = row[4]
-        media = row[3]
-        date = row[0]
+            for media_url, media_name in media.iteritems():
+                if media_url in url:
+                    context['media'] = media_name
+                    break
 
-        hits.append(dict(
-            title=title, url=last_url,
-            media=media, date=date))
+            output.write(tmpl % context)
 
-tmpl = '<li><a href="%(url)s">%(title)s</a><br/><i>%(media)s</i>, %(date)s</li>\n'
-
-with open(args.output, 'w') as fp:
-    for hit in reversed(hits):
-        hit['date'] = time.strptime(hit["date"], "%m/%d/%Y")
-        hit["date"] = time.strftime("%B %e, %Y", hit["date"])
-        fp.write((tmpl % hit).encode('utf-8'))
+output.close()
