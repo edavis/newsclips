@@ -8,4 +8,4 @@ configparser
 unittest2
 nose
 coverage
-
+tablib
