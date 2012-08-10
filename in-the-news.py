@@ -1,39 +1,59 @@
 #!/usr/bin/env python
 
 import re
-import datetime
 import argparse
+import operator
+import datetime
+from core.parsers.mention import Mention
 
-today = datetime.date.today().strftime("%Y%m%d")
+def get_mentions(fname):
+    """
+    Extract 'NPRI in Print' or 'NPRI in the News' hits and return
+    dicts of their metainfo.
+    """
+    capture = re.compile('NPRI in ?.* ?(news|print)', re.I)
+    with open(fname) as fp:
+        for line in fp:
+            line = line.strip()
+            if capture.search(line):
+                yield get_info(line)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('input')
-parser.add_argument('-o', '--output', default="%s-in-the-news.txt" % today)
-args = parser.parse_args()
+def get_info(hit):
+    """
+    Return a dict of info about the hit.
+    """
+    mention = Mention(hit)
+    return dict(
+        url = mention.info["url"],
+        title = mention.info["title"],
+        date = mention.info["datetime_date"] or datetime.date(1970, 1, 1),
+        type = 'news' if mention.in_the_news else 'print',
+        author = '(need author)',
+        media = mention.info["media"],
+    )
 
-tmpl = '<li><a href="%(url)s">(no title)</a><br/><i>%(media)s</i>, (no date)</li>\n'
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input")
+    args = parser.parse_args()
 
-media = {
-    'rgj.com': 'Reno Gazette-Journal',
-    'lvrj.com': 'Las Vegas Review-Journal',
-    'lasvegassun.com': 'Las Vegas Sun',
-}
+    mentions = get_mentions(args.input)
+    outputs = []
+    for mention in sorted(mentions, key=lambda e: e['date'], reverse=True):
+        mention.update(dict(date = mention["date"].strftime("%B %e, %Y")))
+        if mention['type'] == 'news':
+            t = """<li><a href="%(url)s">%(title)s</a><br/><i>%(media)s</i>, %(date)s</li>"""
+        elif mention['type'] == 'print':
+            t = """<li><a href="%(url)s">%(title)s</a><br/>By %(author)s, <i>%(media)s</i>, %(date)s</li>"""
+        output = t % mention
+        outputs.append((mention['type'], output))
 
-output = open(args.output, 'w')
+    with open('in-the-news/news.txt', 'w') as news, open('in-the-news/print.txt', 'w') as print_:
+         for (mention, output) in outputs:
+             if mention == 'news':
+                 news.write(output + '\n')
+             elif mention == 'print':
+                 print_.write(output + '\n')
 
-with open(args.input) as fp:
-    for line in fp:
-        line = line.strip()
-
-        if 'in the news' in line.lower():
-            url = re.search(r'^([^ ]+)', line).group(1)
-            context = {'url': url, 'media': '(no media)'}
-
-            for media_url, media_name in media.iteritems():
-                if media_url in url:
-                    context['media'] = media_name
-                    break
-
-            output.write(tmpl % context)
-
-output.close()
+if __name__ == "__main__":
+    main()

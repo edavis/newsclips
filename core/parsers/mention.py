@@ -29,6 +29,7 @@ class Mention(object):
         # we ever want/need to change the format
         if obj.date():
             self.info["date"] = obj.date().strftime("%m/%d/%Y")
+            self.info["datetime_date"] = obj.date()
         else:
             self.info["date"] = ""
 
@@ -46,6 +47,7 @@ class Mention(object):
         if isinstance(obj, Article):
             self.info["url"] = obj.url
             self.in_the_news = 'in the news' in line.lower()
+            self.in_print = 'in print' in line.lower()
             self.duplicate = 'and online' in line.lower() #should this be for both Radio and Article?
         else:
             self.info["url"] = ""
