@@ -81,7 +81,10 @@ class Article(object):
                     day = int(day)
 
                 if all([year, month, day]):
-                    date = datetime.date(year, month, day)
+                    try:
+                        date = datetime.date(year, month, day)
+                    except ValueError:
+                        date = datetime.date(1970, 1, 1)
                     break
 
         # short-circuit if date was in the URL
