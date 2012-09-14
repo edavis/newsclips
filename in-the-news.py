@@ -50,6 +50,7 @@ def main():
 
     with open('in-the-news/news.txt', 'w') as news, open('in-the-news/print.txt', 'w') as print_:
          for (mention, output) in outputs:
+             output = output.encode('utf-8')
              if mention == 'news':
                  news.write(output + '\n')
              elif mention == 'print':
